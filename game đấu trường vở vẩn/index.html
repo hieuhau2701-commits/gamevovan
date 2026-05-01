@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đang tải trò chơi...</title>
+    
+    <!-- Cách 1: Chuyển hướng bằng thẻ meta HTML (hoạt động ngay cả khi tắt JS) -->
+    <!-- Đã tạm vô hiệu hóa trong môi trường xem trước để tránh lỗi -->
+    <!-- <meta http-equiv="refresh" content="0; url=login.html"> -->
+    
+    <style>
+        body {
+            background-color: #111827; /* Màu nền tối khớp với game */
+            color: white;
+            font-family: sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .loader {
+            text-align: center;
+        }
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-left-color: #3b82f6; /* Màu xanh của nút đăng nhập */
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="loader">
+        <div class="spinner"></div>
+        <p>Đang chuẩn bị dữ liệu Anh Hùng Vô Danh...</p>
+        <p id="statusMsg" style="font-size: 12px; color: #9ca3af;">Nếu không tự chuyển hướng, <a href="login.html" style="color: #60a5fa;">bấm vào đây</a>.</p>
+    </div>
+
+    <!-- Cách 2: Chuyển hướng bằng JavaScript (nhanh và mượt hơn) -->
+    <script>
+        // Kiểm tra xem có đang chạy trong môi trường xem trước (sandbox/blob) không
+        if (window.location.protocol.startsWith('blob')) {
+            document.getElementById('statusMsg').innerHTML = "Trang xem trước không hỗ trợ chuyển trang tự động.<br>Hãy tải tệp lên GitHub để tính năng này hoạt động.";
+            console.warn("Đang chạy trong môi trường xem trước (blob:), tính năng tự động chuyển trang đã được tạm dừng để tránh lỗi.");
+        } else {
+            try {
+                window.location.replace("login.html");
+            } catch (e) {
+                console.error("Lỗi chuyển hướng:", e);
+                window.location.href = "login.html";
+            }
+        }
+    </script>
+</body>
+</html>
