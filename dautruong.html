@@ -130,9 +130,15 @@
         import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- FIREBASE SETUP ---
-        let firebaseConfig = {};
-        try { firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}'); } catch(e) {}
-        
+       const firebaseConfig = {
+  apiKey: "AIzaSyAqJzVPjstw570AfjzhTL9V-wBgrffqTAk",
+  authDomain: "hieu-abfde.firebaseapp.com",
+  projectId: "hieu-abfde",
+  storageBucket: "hieu-abfde.firebasestorage.app",
+  messagingSenderId: "643223090105",
+  appId: "1:643223090105:web:1c1e3f1ab2077d20e03c68",
+  measurementId: "G-C5SXS702MB"
+};
         const app = Object.keys(firebaseConfig).length > 0 ? initializeApp(firebaseConfig) : null;
         const auth = app ? getAuth(app) : null;
         const db = app ? getFirestore(app) : null;
