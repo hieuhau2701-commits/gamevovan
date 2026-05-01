@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập - Anh Hùng Vô Danh</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Tích hợp thư viện EmailJS -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="text/javascript">
+        // LƯU Ý: Thay thế chuỗi này bằng PUBLIC_KEY của bạn từ EmailJS
+        (function() {
+            emailjs.init("dgWnQO5r8GvgyT9LU"); 
+        })();
+    </script>
+
+    <style>
+        body {
+            background-image: radial-gradient(circle at center, #1f2937 0%, #030712 100%);
+        }
+        input:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px #3b82f6;
+        }
+        input[type="number"]::-webkit-inner-spin-button, 
+        input[type="number"]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 font-sans text-white">
+
+    <div class="w-full max-w-md bg-gray-800 border border-gray-700 rounded-2xl shadow-2xl p-8 relative overflow-hidden">
+        <!-- Hiệu ứng trang trí -->
+        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-600"></div>
+
+        <!-- Tiêu đề -->
+        <div class="text-center mb-8">
+            <div class="text-5xl mb-2">⚔️</div>
+            <h1 class="text-2xl font-extrabold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
+                ANH HÙNG VÔ DANH
+            </h1>
+            <p id="formTitle" class="text-gray-400 mt-2 text-sm">Đăng nhập để tiếp tục cuộc hành trình</p>
+        </div>
+
+        <!-- THÔNG BÁO LỖI CHUNG -->
+        <div id="errorMessage" class="text-red-400 text-sm hidden bg-red-900/30 p-3 rounded-lg border border-red-800/50 mb-4 text-center">
+            Lỗi đăng nhập!
+        </div>
+
+        <!-- ================= FORM 1: ĐĂNG NHẬP / ĐĂNG KÝ ================= -->
+        <form id="authForm" class="space-y-5">
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-1">Email</label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">📧</span>
+                    <input type="email" id="emailInput" required placeholder="nhaphiep@gmail.com" 
+                        class="w-full bg-gray-900 border border-gray-600 rounded-lg py-2.5 pl-10 pr-4 text-white placeholder-gray-500 transition-shadow">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-1">Mật khẩu</label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">🔑</span>
+                    <input type="password" id="passwordInput" required placeholder="••••••••" minlength="6"
+                        class="w-full bg-gray-900 border border-gray-600 rounded-lg py-2.5 pl-10 pr-4 text-white placeholder-gray-500 transition-shadow">
+                </div>
+            </div>
+
+            <button type="submit" id="submitBtn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition-transform active:scale-95 flex justify-center items-center">
+                <span>ĐĂNG NHẬP</span>
+            </button>
+        </form>
+
+        <!-- Chuyển đổi giữa Đăng nhập và Đăng ký -->
+        <div id="toggleContainer" class="mt-6 text-center text-sm text-gray-400">
+            <span id="toggleText">Chưa có tài khoản?</span> 
+            <button id="toggleBtn" class="text-blue-400 hover:text-blue-300 font-bold ml-1 transition-colors">
+                Đăng ký ngay
+            </button>
+        </div>
+
+        <!-- ================= FORM 2: XÁC MINH MÃ OTP ================= -->
+        <div id="otpForm" class="hidden space-y-5 text-center flex flex-col items-center">
+            <div class="text-gray-300 text-sm mb-2">
+                Mã xác minh 6 chữ số đã được gửi tới <br>
+                <strong id="otpEmailDisplay" class="text-blue-400 text-base block mt-1"></strong>
+            </div>
+            
+            <input type="number" id="otpInput" placeholder="------" 
+                oninput="if(this.value.length > 6) this.value = this.value.slice(0, 6);"
+                class="w-48 bg-gray-900 border-2 border-gray-600 rounded-lg py-3 text-center text-3xl tracking-[0.5em] text-white font-bold focus:border-blue-500 transition-colors">
+            
+            <button id="verifyOtpBtn" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition-transform active:scale-95">
+                XÁC NHẬN MÃ
+            </button>
+            
+            <button id="resendOtpBtn" class="text-sm text-blue-400 hover:text-blue-300 mt-4 underline">
+                Gửi lại mã
+            </button>
+            
+            <button id="backBtn" class="text-sm text-gray-400 hover:text-white underline mt-2">
+                Quay lại đăng nhập
+            </button>
+        </div>
+
+    </div>
+
+    <!-- Nạp thư viện Firebase -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // 1. Cấu hình Firebase của bạn
+        // CẦN THAY THẾ BẰNG FIREBASE CONFIG THẬT CỦA BẠN
+        let firebaseConfig = {};
+        try { firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}'); } catch(e) {}
+
+        const app = Object.keys(firebaseConfig).length > 0 ? initializeApp(firebaseConfig) : null;
+        const auth = app ? getAuth(app) : null;
+        const db = app ? getFirestore(app) : null;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        // 2. DOM Elements
+        const authForm = document.getElementById('authForm');
+        const otpForm = document.getElementById('otpForm');
+        const toggleContainer = document.getElementById('toggleContainer');
+        const emailInput = document.getElementById('emailInput');
+        const passwordInput = document.getElementById('passwordInput');
+        const submitBtn = document.getElementById('submitBtn');
+        const errorMessage = document.getElementById('errorMessage');
+        const formTitle = document.getElementById('formTitle');
+        const toggleText = document.getElementById('toggleText');
+        const toggleBtn = document.getElementById('toggleBtn');
+        const otpEmailDisplay = document.getElementById('otpEmailDisplay');
+        const otpInput = document.getElementById('otpInput');
+        const verifyOtpBtn = document.getElementById('verifyOtpBtn');
+        const resendOtpBtn = document.getElementById('resendOtpBtn');
+        const backBtn = document.getElementById('backBtn');
+
+        let isLoginMode = true;
+        let currentUserId = null;
+        let currentUserEmail = null;
+
+        const getUserRef = (uid) => doc(db, 'artifacts', appId, 'users', uid, 'account', 'info');
+
+        // 3. Chuyển đổi Đăng nhập / Đăng ký
+        toggleBtn.addEventListener('click', () => {
+            isLoginMode = !isLoginMode;
+            errorMessage.classList.add('hidden');
+            
+            if (isLoginMode) {
+                formTitle.textContent = "Đăng nhập để tiếp tục cuộc hành trình";
+                submitBtn.innerHTML = "<span>ĐĂNG NHẬP</span>";
+                toggleText.textContent = "Chưa có tài khoản?";
+                toggleBtn.textContent = "Đăng ký ngay";
+            } else {
+                formTitle.textContent = "Tạo tài khoản mới để lưu trữ sức mạnh";
+                submitBtn.innerHTML = "<span>ĐĂNG KÝ TÀI KHOẢN</span>";
+                toggleText.textContent = "Đã có tài khoản?";
+                toggleBtn.textContent = "Đăng nhập";
+            }
+        });
+
+        // 4. Xử lý Form Email & Pass
+        authForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!auth || !db) {
+                showError("Lỗi: Chưa kết nối được tới Firebase!");
+                return;
+            }
+
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+
+            const originalBtnText = submitBtn.innerHTML;
+            submitBtn.innerHTML = "<span>⏳ Đang xử lý...</span>";
+            submitBtn.disabled = true;
+            errorMessage.classList.add('hidden');
+
+            try {
+                if (isLoginMode) {
+                    // --- ĐĂNG NHẬP ---
+                    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                    const user = userCredential.user;
+                    currentUserId = user.uid;
+                    currentUserEmail = user.email;
+
+                    const userDoc = await getDoc(getUserRef(user.uid));
+                    if (userDoc.exists() && userDoc.data().isVerified === true) {
+                        window.location.href = "rpg_game.html";
+                    } else {
+                        // Chưa xác minh -> Gửi OTP thật
+                        await processOtpVerification(user.uid, user.email);
+                    }
+
+                } else {
+                    // --- ĐĂNG KÝ ---
+                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                    const user = userCredential.user;
+                    currentUserId = user.uid;
+                    currentUserEmail = user.email;
+
+                    // Lưu thông tin vào Firestore với isVerified = false
+                    await setDoc(getUserRef(user.uid), {
+                        email: user.email,
+                        isVerified: false
+                    });
+
+                    // Gửi OTP thật
+                    await processOtpVerification(user.uid, user.email);
+                }
+            } catch (error) {
+                console.error("Lỗi:", error);
+                handleFirebaseError(error.code);
+            } finally {
+                submitBtn.innerHTML = originalBtnText;
+                submitBtn.disabled = false;
+            }
+        });
+
+        // Hàm tạo OTP, lưu Firestore và gửi qua EmailJS
+        async function processOtpVerification(uid, email) {
+            const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+            
+            // Lưu OTP vào Firestore
+            await setDoc(getUserRef(uid), { otp: otpCode }, { merge: true });
+            
+            // GỬI EMAIL THẬT QUA EMAILJS
+            sendRealEmail(email, otpCode);
+            
+            switchToOtpScreen(email);
+        }
+
+        // HÀM GỬI EMAIL THẬT SỰ
+        function sendRealEmail(userEmail, otpCode) {
+            // LƯU Ý: Thay thế các Service ID và Template ID dưới đây
+            const serviceID = "service_b725zlx"; 
+            const templateID = "template_8wvec9n";
+
+            // Cấu trúc dữ liệu gửi đi (phải khớp với Template trên EmailJS)
+            const templateParams = {
+                to_email: userEmail,
+                otp_code: otpCode,
+                // có thể thêm tên game, thời gian... nếu template có
+            };
+
+            emailjs.send(serviceID, templateID, templateParams)
+                .then(function(response) {
+                   console.log('Đã gửi email thành công!', response.status, response.text);
+                }, function(error) {
+                   console.error('Gặp lỗi khi gửi email:', error);
+                   showError("Lỗi hệ thống gửi mail. Hãy thử gửi lại!");
+                });
+        }
+
+        // 5. Xử lý Nút Xác Nhận Mã OTP
+        verifyOtpBtn.addEventListener('click', async () => {
+            const inputCode = otpInput.value.trim();
+            if (inputCode.length !== 6) {
+                showError("Vui lòng nhập đủ 6 chữ số!");
+                return;
+            }
+
+            verifyOtpBtn.innerHTML = "⏳ Đang kiểm tra...";
+            verifyOtpBtn.disabled = true;
+            errorMessage.classList.add('hidden');
+
+            try {
+                const userDoc = await getDoc(getUserRef(currentUserId));
+                
+                if (userDoc.exists() && userDoc.data().otp === inputCode) {
+                    // Trùng khớp OTP -> Xác minh thành công
+                    await setDoc(getUserRef(currentUserId), {
+                        isVerified: true,
+                        otp: null 
+                    }, { merge: true });
+
+                    alert("Xác minh thành công! Đang tiến vào trò chơi...");
+                    window.location.href = "rpg_game.html";
+                } else {
+                    showError("Mã xác minh không chính xác!");
+                }
+            } catch (error) {
+                console.error("Lỗi xác minh:", error);
+                showError("Có lỗi xảy ra khi xác minh.");
+            } finally {
+                verifyOtpBtn.innerHTML = "XÁC NHẬN MÃ";
+                verifyOtpBtn.disabled = false;
+            }
+        });
+
+        // 6. Gửi lại mã OTP
+        resendOtpBtn.addEventListener('click', async () => {
+            if(!currentUserId || !currentUserEmail) return;
+            resendOtpBtn.disabled = true;
+            resendOtpBtn.textContent = "⏳ Đang gửi...";
+            
+            await processOtpVerification(currentUserId, currentUserEmail);
+            
+            resendOtpBtn.textContent = "Đã gửi lại mã";
+            setTimeout(() => {
+                resendOtpBtn.disabled = false;
+                resendOtpBtn.textContent = "Gửi lại mã";
+            }, 5000); // Chống spam click 5s
+        });
+
+        // 7. Quay lại màn hình đăng nhập
+        backBtn.addEventListener('click', async () => {
+            await signOut(auth);
+            otpForm.classList.add('hidden');
+            authForm.classList.remove('hidden');
+            toggleContainer.classList.remove('hidden');
+            formTitle.textContent = "Đăng nhập để tiếp tục cuộc hành trình";
+            errorMessage.classList.add('hidden');
+            otpInput.value = "";
+        });
+
+        // --- CÁC HÀM HỖ TRỢ ---
+        function switchToOtpScreen(email) {
+            authForm.classList.add('hidden');
+            toggleContainer.classList.add('hidden');
+            formTitle.textContent = "Xác minh tài khoản của bạn";
+            otpEmailDisplay.textContent = email;
+            otpForm.classList.remove('hidden');
+            errorMessage.classList.add('hidden');
+        }
+
+        function handleFirebaseError(errorCode) {
+            let msg = "Đã xảy ra lỗi không xác định.";
+            switch (errorCode) {
+                case 'auth/email-already-in-use': msg = "Email này đã được đăng ký. Vui lòng đăng nhập!"; break;
+                case 'auth/invalid-email': msg = "Định dạng email không hợp lệ."; break;
+                case 'auth/weak-password': msg = "Mật khẩu quá yếu, phải có ít nhất 6 ký tự."; break;
+                case 'auth/user-not-found':
+                case 'auth/wrong-password':
+                case 'auth/invalid-credential': msg = "Email hoặc mật khẩu không chính xác!"; break;
+                case 'auth/too-many-requests': msg = "Bạn đã thử quá nhiều lần. Vui lòng đợi một lát!"; break;
+            }
+            showError(msg);
+        }
+
+        function showError(msg) {
+            errorMessage.textContent = msg;
+            errorMessage.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
