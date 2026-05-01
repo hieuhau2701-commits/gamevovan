@@ -19,10 +19,12 @@
         body {
             background-image: radial-gradient(circle at center, #1f2937 0%, #030712 100%);
         }
+        /* Hiệu ứng focus cho input */
         input:focus {
             outline: none;
             box-shadow: 0 0 0 2px #3b82f6;
         }
+        /* Ẩn mũi tên tăng giảm của ô input số */
         input[type="number"]::-webkit-inner-spin-button, 
         input[type="number"]::-webkit-outer-spin-button { 
             -webkit-appearance: none; 
@@ -127,10 +129,10 @@
   measurementId: "G-C5SXS702MB"
 };
 
-        const app = Object.keys(firebaseConfig).length > 0 ? initializeApp(firebaseConfig) : null;
-        const auth = app ? getAuth(app) : null;
-        const db = app ? getFirestore(app) : null;
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = 'my-rpg-game-123'; // LƯU Ý: Biến appId này phải giống hệt với biến appId bên file rpg_game.html
 
         // 2. DOM Elements
         const authForm = document.getElementById('authForm');
@@ -199,7 +201,11 @@
 
                     const userDoc = await getDoc(getUserRef(user.uid));
                     if (userDoc.exists() && userDoc.data().isVerified === true) {
-                        window.location.href = "rpg_game.html";
+                        try {
+                            window.location.href = "rpg_game.html"; // Chuyển sang file Đấu Trường
+                        } catch(e) {
+                            console.log("Đang trong môi trường xem trước, không thể chuyển hướng tự động.");
+                        }
                     } else {
                         // Chưa xác minh -> Gửi OTP thật
                         await processOtpVerification(user.uid, user.email);
@@ -253,7 +259,6 @@
             const templateParams = {
                 to_email: userEmail,
                 otp_code: otpCode,
-                // có thể thêm tên game, thời gian... nếu template có
             };
 
             emailjs.send(serviceID, templateID, templateParams)
@@ -288,7 +293,11 @@
                     }, { merge: true });
 
                     alert("Xác minh thành công! Đang tiến vào trò chơi...");
-                    window.location.href = "rpg_game.html";
+                    try {
+                        window.location.href = "rpg_game.html";
+                    } catch(e) {
+                        console.log("Đang trong môi trường xem trước, không thể chuyển hướng tự động.");
+                    }
                 } else {
                     showError("Mã xác minh không chính xác!");
                 }
