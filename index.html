@@ -1,12 +1,27 @@
 <!doctype html>
-<html lang="en">
+<html lang="vi">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/gamevovan/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>tu-tien-web</title>
-    <script type="module" crossorigin src="/gamevovan/assets/index-CH6lw_dw.js"></script>
-    <link rel="stylesheet" crossorigin href="/gamevovan/assets/index-BiYj5EJr.css">
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    
+    <!-- Cập nhật thẻ meta chuẩn: Xóa bỏ maximum-scale để VS Code không báo lỗi -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    
+    <title>Tiên Nghịch 2D - Nghịch Thiên Nhi Hành</title>
+    
+    <style>
+      /* Đảm bảo body không bị cuộn hay có viền trắng dư thừa */
+      body, html {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background-color: #000; /* Màu nền đen chống chói lúc tải game */
+      }
+    </style>
+    <script type="module" crossorigin src="/gamevovan/assets/index-CmQ0ndIE.js"></script>
+    <link rel="stylesheet" crossorigin href="/gamevovan/assets/index-DNYbbwsU.css">
   </head>
   <body>
     <div id="root"></div>
